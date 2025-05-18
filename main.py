@@ -59,5 +59,5 @@ async def submit_name(name: str = Form(...)):
         </html>
         """
     except Exception as e:
-        return f"<h1>Error occurred: {error_output}</h1>
+        return f"<h1>Error occurred: {error_output}</h1>"
         # return f"<h1>Error: {str(e)}</h1>"
