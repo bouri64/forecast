@@ -5,3 +5,4 @@ supabase
 fuzzywuzzy
 matplotlib
 pandas
+python-Levenshtein
