@@ -36,8 +36,8 @@ async def submit_name(name: str = Form(...)):
         script_output = result.stdout.strip()
         error_output = result.stderr
 
-        if error_output:
-            return f"<h1>Error occurred: {error_output}</h1>"
+        # if error_output:
+        #     return f"<h1>Error occurred: {error_output}</h1>"
 
         # Parse path from script output
         plot_path = None
@@ -59,4 +59,5 @@ async def submit_name(name: str = Form(...)):
         </html>
         """
     except Exception as e:
-        return f"<h1>Error: {str(e)}</h1>"
+        return f"<h1>Error occurred: {error_output}</h1>
+        # return f"<h1>Error: {str(e)}</h1>"
