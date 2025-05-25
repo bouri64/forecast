@@ -6,3 +6,4 @@ fuzzywuzzy
 matplotlib
 pandas
 python-Levenshtein
+yfinance
