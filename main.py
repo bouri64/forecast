@@ -49,7 +49,7 @@ async def read_root():
                 <option value="D">Daily</option>
                 <option value="Q">Quarterly</option>
                 <option value="M">Monthly</option>
-                <option value="Y">Yearly</option>
+                <option value="Y" selected>Yearly</option>
             </select>
 
             <br><br>
