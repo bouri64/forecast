@@ -82,17 +82,10 @@ async def submit_name(
         script_output = result.stdout.strip()
         error_output = result.stderr.strip()
 
-        if error_output:
-            return f"<h1>Error from script:<br><pre>{error_output}</pre></h1>"
+        # if error_output:
+        #     return f"<h1>Error from script:<br><pre>{error_output}</pre></h1>"
 
-        # Parse path from script output
-        plot_path = None
-        if "Plot saved to:" in script_output:
-            plot_path = script_output.split("Plot saved to: ")[-1].strip()
-
-        img_tag = f'<img src="/{plot_path}" alt="Plot">' if plot_path else "<p>No image generated.</p>"
-
-        img_base64 = result.stdout.strip()
+        img_base64 = script_output
 
         return img_base64
     except Exception as e:
