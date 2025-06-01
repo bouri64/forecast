@@ -56,17 +56,11 @@ def load_sp(minDate, maxDate):
     return adjust_sp(sp, minDate, maxDate)
 
 def plot_company_vs_sp_df(name, df, sp_df, display = True, save = False, period='M', from_files = False, verbose = 1):
-    df['Time'] = df['Date'].dt.to_period(period)
-    sp_df['Time'] = sp_df['Date'].dt.to_period(period)
-
     # Group by period and aggregate
     agg_funcs = {'Low': 'min', 'High': 'max'}
-    df_grouped = df.groupby('Time').agg(agg_funcs).sort_index()
-    sp_grouped = sp_df.groupby('Time').agg(agg_funcs).sort_index()
 
-    # Convert period back to timestamp
-    df_grouped.index = df_grouped.index.to_timestamp()
-    sp_grouped.index = sp_grouped.index.to_timestamp()
+    df_grouped = df.resample(period).agg(agg_funcs).sort_index()
+    sp_grouped = sp_df.resample(period).agg(agg_funcs).sort_index()
 
     # Convert to numpy arrays for plotting
     time_df = df_grouped.index.to_numpy()

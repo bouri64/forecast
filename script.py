@@ -32,9 +32,9 @@ min_date = max(df_company['Date'].min(), min_date)
 max_date = min(df_company['Date'].max(), max_date)
 df_sp = load_sp(min_date, max_date)
 image = plot_company_vs_sp_df(name, df_company, df_sp, display = True, save = True, period = period)
-# print(f"Plot saved to: output/{name}.png")
-# end_time = time.time()
-# elapsed = end_time - start_time
-# print(f"Script took {elapsed:.3f} seconds")
+# # print(f"Plot saved to: output/{name}.png")
+# # end_time = time.time()
+# # elapsed = end_time - start_time
+# # print(f"Script took {elapsed:.3f} seconds")
 
 print(image)
