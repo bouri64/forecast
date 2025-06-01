@@ -3,9 +3,9 @@ from fastapi.responses import HTMLResponse
 import subprocess
 from typing import Optional
 from fastapi.staticfiles import StaticFiles
+from companies import companies_list
 
-app = FastAPI()
-
+companies_names = companies_list.keys()
 
 app = FastAPI()
 # Serve the 'output' folder at the '/output' path
@@ -13,16 +13,20 @@ app.mount("/output", StaticFiles(directory="output"), name="output")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
-    return """
+    options_html = "".join(f'<option value="{company}">' for company in companies_names)
+    return f"""
     <html>
         <head>
-            <title>FastAPI with Python Script</title>
+            <title>FastAPI with Autocomplete</title>
         </head>
         <body>
             <h1>Enter company's name</h1>
             <form action="/submit" method="post">
                 <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
+                <input list="companies" id="name" name="name" required>
+                <datalist id="companies">
+                    {options_html}
+                </datalist>
                 <button type="submit">Submit</button>
             </form>
         </body>

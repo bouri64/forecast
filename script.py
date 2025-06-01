@@ -11,7 +11,11 @@ name = sys.argv[1]
 df_symbols = read_symbols()
 # closest_company = find_closest_company(name, df_symbols)
 # symbol = df_symbols[df_symbols['Name'] == closest_company].Symbol.iloc[0]
-closest_company = find_closest_company_from_dict(name, df_symbols)
+print(name)
+if name in df_symbols.keys():
+    closest_company = name
+else:
+    closest_company = find_closest_company_from_dict(name, df_symbols)
 symbol = df_symbols[closest_company]
 print(closest_company, "---", symbol)
 df_company = read_company(symbol)
