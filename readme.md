@@ -8,3 +8,7 @@ A minimal FastAPI app deployed for free using Render.com 🚀
 2. Go to [https://dashboard.render.com/](https://dashboard.render.com/).
 3. Click **"New Web Service"**.
 4. Connect to your repo and select the `render.yaml`.
+
+## Test locally
+1. env\Scripts\activate
+2. uvicorn main:app --reload
