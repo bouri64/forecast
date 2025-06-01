@@ -5,10 +5,11 @@ from supabase import create_client, Client
 import io
 import base64
 import yfinance as yf
+from companies import companies_list
 
-url = "https://upbgpsqskumjhfrqefbt.supabase.co"
-public_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwYmdwc3Fza3VtamhmcnFlZmJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwODE5MDcsImV4cCI6MjA2MjY1NzkwN30.sK_OPvxn2S0L4UeCUkjRV1jJm7bwfc55SRP7tRQ4FhQ"
-supabase: Client = create_client(url, public_anon_key)
+# url = "https://upbgpsqskumjhfrqefbt.supabase.co"
+# public_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwYmdwc3Fza3VtamhmcnFlZmJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwODE5MDcsImV4cCI6MjA2MjY1NzkwN30.sK_OPvxn2S0L4UeCUkjRV1jJm7bwfc55SRP7tRQ4FhQ"
+# supabase: Client = create_client(url, public_anon_key)
 
 # !pip install fuzzywuzzy
 # !pip install python-Levenshtein
@@ -94,8 +95,9 @@ def plot_company_vs_sp_df(name, df, sp_df, display = True, save = False, period=
 
 
 def read_symbols():
-    response = supabase.table("symbols").select("Symbol,Name").execute()
-    df_symbols = pd.DataFrame(response.data)
+    # response = supabase.table("symbols").select("Symbol,Name").execute()
+    # df_symbols = pd.DataFrame(response.data)
+    df_symbols = pd.DataFrame(data=companies_list, columns=['Symbol','Name'])
     return df_symbols
 
 def read_company(symbol):
