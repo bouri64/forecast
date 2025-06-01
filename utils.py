@@ -56,49 +56,50 @@ def load_sp(minDate, maxDate):
     return adjust_sp(sp, minDate, maxDate)
 
 def plot_company_vs_sp_df(name, df, sp_df, display = True, save = False, period='M', from_files = False, verbose = 1):
-    # Process: Compute monthly average of High and Low for Company
     df['Time'] = df['Date'].dt.to_period(period)
     sp_df['Time'] = sp_df['Date'].dt.to_period(period)
-    df_grouped = df.groupby('Time').agg({'Low': 'min', 'High': 'max'}).reset_index()
-    sp_grouped = sp_df.groupby('Time').agg({'Low': 'min', 'High': 'max'}).reset_index()
 
-    # Sort both DataFrames by date
-    df_grouped = df_grouped.sort_values('Time')
-    sp_grouped = sp_grouped.sort_values('Time')
+    # Group by period and aggregate
+    agg_funcs = {'Low': 'min', 'High': 'max'}
+    df_grouped = df.groupby('Time').agg(agg_funcs).sort_index()
+    sp_grouped = sp_df.groupby('Time').agg(agg_funcs).sort_index()
 
-    df_grouped['Time'] = df_grouped['Time'].dt.to_timestamp()
-    sp_grouped['Time'] = sp_grouped['Time'].dt.to_timestamp()
-    # Plotting
+    # Convert period back to timestamp
+    df_grouped.index = df_grouped.index.to_timestamp()
+    sp_grouped.index = sp_grouped.index.to_timestamp()
+
+    # Convert to numpy arrays for plotting
+    time_df = df_grouped.index.to_numpy()
+    time_sp = sp_grouped.index.to_numpy()
+
+    df_low, df_high = df_grouped['Low'].to_numpy(), df_grouped['High'].to_numpy()
+    sp_low, sp_high = sp_grouped['Low'].to_numpy(), sp_grouped['High'].to_numpy()
+
+    # Create plot
     fig, ax1 = plt.subplots(figsize=(12, 6))
-
-    # Plot Company
-    ax1.plot(df_grouped['Time'].to_numpy(), df_grouped['Low'].to_numpy(), label=f'{name} Low', color='blue')
-    ax1.plot(df_grouped['Time'].to_numpy(), df_grouped['High'].to_numpy(), label=f'{name} High', color='red')
+    ax1.plot(time_df, df_low, label=f'{name} Low', color='blue')
+    ax1.plot(time_df, df_high, label=f'{name} High', color='red')
     ax1.set_ylabel(f'{name} Price')
     ax1.set_xlabel('Date')
-    ax1.legend(loc='upper left')
     ax1.grid(True)
+    ax1.legend(loc='upper left')
 
-    # Create second y-axis for S&P 500
+    # Twin axis for S&P 500
     ax2 = ax1.twinx()
-    ax2.plot(sp_grouped['Time'].to_numpy(), sp_grouped['Low'].to_numpy(), label='S&P 500 Low', color='purple', linestyle='--')
-    ax2.plot(sp_grouped['Time'].to_numpy(), sp_grouped['High'].to_numpy(), label='S&P 500 High', color='green', linestyle='--')
+    ax2.plot(time_sp, sp_low, label='S&P 500 Low', color='purple', linestyle='--')
+    ax2.plot(time_sp, sp_high, label='S&P 500 High', color='green', linestyle='--')
     ax2.set_ylabel('S&P 500 Index')
     ax2.legend(loc='upper right')
 
     plt.title(f'{name} vs. S&P 500: "{period}" High and Low Prices')
     plt.tight_layout()
-    # if (save):
-    #     plt.savefig(f".\output\{name}.png")  # Save as PNG
-    # if (display):
-    #     plt.show()
-    # Save to memory buffer
+
+    # Save to buffer and encode as base64
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     plt.close(fig)
     buf.seek(0)
 
-    # Encode as base64
     img_base64 = base64.b64encode(buf.read()).decode('utf-8')
     return f'<img src="data:image/png;base64,{img_base64}" alt="Plot">'
 
