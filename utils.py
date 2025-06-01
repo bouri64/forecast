@@ -25,6 +25,15 @@ def find_closest_company(input_name, df, column_name='Name'):
     else:
         return None  # In case no match is found
     
+def find_closest_company_from_dict(input_name, companies: dict):
+    # Use fuzzywuzzy's process.extractOne to find the closest match
+    closest_match = process.extractOne(input_name, companies.keys())
+    
+    if closest_match:
+        return closest_match[0]  # Return the best match (name)
+    else:
+        return None  # In case no match is found
+    
 
 def adjust_sp(sp_df, minDate, maxDate):
     sp_df['Date'] = pd.to_datetime(sp_df.index.tz_localize(None))
@@ -97,8 +106,8 @@ def plot_company_vs_sp_df(name, df, sp_df, display = True, save = False, period=
 def read_symbols():
     # response = supabase.table("symbols").select("Symbol,Name").execute()
     # df_symbols = pd.DataFrame(response.data)
-    df_symbols = pd.DataFrame(data=companies_list, columns=['Symbol','Name'])
-    return df_symbols
+    # return df_symbols
+    return companies_list
 
 def read_company(symbol):
     df = yf.Ticker(symbol).history(period="max")
