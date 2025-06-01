@@ -15,7 +15,7 @@ from companies import companies_list
 # !pip install python-Levenshtein
 
 # company_name = 'Apple'
-period = 'Y'
+
 def find_closest_company(input_name, df, column_name='Name'):
     # Use fuzzywuzzy's process.extractOne to find the closest match
     closest_match = process.extractOne(input_name, df[column_name])
