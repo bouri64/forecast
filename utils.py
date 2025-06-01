@@ -36,23 +36,23 @@ def find_closest_company_from_dict(input_name, companies: dict):
     
 
 def adjust_sp(sp_df, minDate, maxDate):
-    sp_df['Date'] = pd.to_datetime(sp_df.index.tz_localize(None))
-    sp_limited = sp_df[sp_df['Date']>= minDate]
-    sp_limited = sp_limited[sp_limited['Date']<= maxDate]
-    return sp_limited
+    # sp_df['Date'] = pd.to_datetime(sp_df.index.tz_localize(None))
+    # sp_limited = sp_df[sp_df['Date']>= minDate]
+    # sp_limited = sp_limited[sp_limited['Date']<= maxDate]
+    return sp_df
 
-def load_company(company_name, financials_path, verbose = 1):
+def load_company(company_name, financials_path, min_date, max_date, verbose = 1):
     financials = pd.read_csv(financials_path, index_col=False)
     closest_company = find_closest_company(company_name, financials)
     symbol = financials[financials['Name'] == closest_company].Symbol.iloc[0]
     if (verbose):
         print(f'The closest match to "{company_name}" is: "{closest_company}" with symbol: "{symbol}"')
-    df = yf.Ticker(symbol).history(period="max")
-    df['Date'] = pd.to_datetime(df.index.tz_localize(None))
+    df = yf.Ticker(symbol).history(start=min_date, end=max_date)
+    # df['Date'] = pd.to_datetime(df.index.tz_localize(None))
     return df, closest_company
 
 def load_sp(minDate, maxDate):
-    sp = yf.Ticker("^GSPC").history(period="max")
+    sp = yf.Ticker("^GSPC").history(start=minDate, end=maxDate)
     return adjust_sp(sp, minDate, maxDate)
 
 def plot_company_vs_sp_df(name, df, sp_df, display = True, save = False, period='M', from_files = False, verbose = 1):
@@ -104,8 +104,8 @@ def read_symbols():
     # return df_symbols
     return companies_list
 
-def read_company(symbol):
-    df = yf.Ticker(symbol).history(period="max")
+def read_company(symbol, min_date, max_date):
+    df = yf.Ticker(symbol).history(start=min_date, end=max_date)
     df['Date'] = pd.to_datetime(df.index.tz_localize(None))
     return df
 
