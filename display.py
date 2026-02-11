@@ -164,16 +164,30 @@ if not metrics:
 #     (df[hue_col].isin(selected_hues))
 # ]
 
+# mask = (
+#     (df[time_col] >= time_range[0]) &
+#     (df[time_col] <= time_range[1]) &
+#     (df[hue_col].isin(selected_hues))
+# )
+
+# for metric_col, (min_val, max_val) in metric_filters.items():
+#     mask &= df[metric_col].between(min_val, max_val)
+
+# df_filtered = df[mask]
+
+
 mask = (
     (df[time_col] >= time_range[0]) &
     (df[time_col] <= time_range[1]) &
     (df[hue_col].isin(selected_hues))
 )
+df_filtered = df[mask]
 
 for metric_col, (min_val, max_val) in metric_filters.items():
-    mask &= df[metric_col].between(min_val, max_val)
+    cur_mask = df_filtered[metric_col].between(min_val, max_val)
+    valid_symbols = df_filtered.loc[cur_mask, "Symbol"].unique()
+    df_filtered = df_filtered[df_filtered["Symbol"].isin(valid_symbols)]
 
-df_filtered = df[mask]
 
 
 # mask = (
@@ -195,6 +209,8 @@ df_filtered = df[mask]
 if df_filtered.empty:
     st.warning("No data for selected filters.")
     st.stop()
+
+valid = len(df_filtered["Symbol"].unique())
 
 # -----------------------
 # Plotting
@@ -226,8 +242,21 @@ if combine_metrics:
             y="value",
             color="metric",
             line_dash=hue_col,
-            title="Metrics over time (linearly rescaled)"
+            markers=True,   # 👈 this adds point markers
+            title=f"Metrics over time (linearly rescaled) | Number of results: {valid}"
         )
+
+        # fig.add_annotation(
+        #     text=f"Number of results: {valid}",
+        #     xref="paper",
+        #     yref="paper",
+        #     x=0.99,
+        #     y=1.08,
+        #     showarrow=False,
+        #     align="right",
+        #     font=dict(size=14)
+        # )
+
 
         fig.update_layout(
             hovermode="x unified"
@@ -250,7 +279,8 @@ if combine_metrics:
             y="value",
             color="metric",
             line_dash=hue_col,
-            title="Metrics over time"
+            markers=True,   # 👈 this adds point markers
+            title=f"Metrics over time | Number of results: {valid}"
         )
 
         fig.update_layout(
@@ -267,7 +297,8 @@ else:
             x=time_col,
             y=metric,
             color=hue_col,
-            title=metric
+            markers=True,   # 👈 this adds point markers
+            title=f"{metric} | Number of results: {valid}"
         )
 
         fig.update_layout(
