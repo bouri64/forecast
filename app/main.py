@@ -16,7 +16,7 @@ st.title("Local Metrics Dashboard")
 @st.cache_data
 def load_data():
     if "current_df" not in st.session_state:
-        st.session_state.current_df = pd.read_csv("./sp500.csv", parse_dates=["Date"], index_col=None)
+        st.session_state.current_df = pd.read_csv("./app/sp500.csv", parse_dates=["Date"], index_col=None)
 
     return st.session_state.current_df
 
