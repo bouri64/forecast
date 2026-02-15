@@ -1,3 +1,6 @@
+# Add etiquette or select from line + better colors
+# Save and load filters
+# Make refacto
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -5,6 +8,7 @@ from sqlalchemy import create_engine
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from display_utils import *
+import numpy as np
 st.set_page_config(layout="wide")
 st.title("Local Metrics Dashboard")
 
@@ -249,6 +253,11 @@ with st.sidebar:
     for metric_col in selected_metrics:
         metric_min = float(st.session_state.current_df[metric_col].min())
         metric_max = float(st.session_state.current_df[metric_col].max())
+        # Make safe for Streamlit
+        if not np.isfinite(metric_min):
+            metric_min = -1.797e+308
+        if not np.isfinite(metric_max):
+            metric_max = 1.797e+308
 
         with st.expander(f"{metric_col} filter", expanded=True):
             # operator = st.selectbox(
@@ -324,7 +333,7 @@ metric_mask = (
     (st.session_state.current_df[time_col] >= time_range_metric[0]) &
     (st.session_state.current_df[time_col] <= time_range_metric[1])
 )
-df_filtered_metrics = df[metric_mask]
+df_filtered_metrics = st.session_state.current_df[metric_mask]
 for metric_col, (min_val, max_val) in metric_filters.items():
     cur_mask = df_filtered_metrics[metric_col].between(min_val, max_val)
     valid_symbols = df_filtered_metrics.loc[cur_mask, "Symbol"].unique()
