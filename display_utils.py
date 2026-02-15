@@ -1,5 +1,3 @@
-import pandas as pd
-import numpy as np
 import operator
 from datetime import datetime
 import streamlit as st
@@ -24,7 +22,7 @@ def delay(df, delay_years, metric):
     return df
 
 # Aggregation (start by sum)
-mode_dict = {"sum": np.sum, "max": np.max, "min": np.min, }
+mode_dict = {"sum": sum, "max": max, "min": min, }
 def aggregate(df, mode, window, metric):
     new_metric = f"{metric}_{window}"
     if new_metric in df.columns:
@@ -38,7 +36,7 @@ def aggregate(df, mode, window, metric):
         .reset_index(level=0, drop=True))
     shifted_year = df.groupby("Symbol")["Year"].shift(window - 1)
     valid = shifted_year == (df["Year"] - (window - 1))
-    df.loc[~valid, new_metric] = None  # or np.nan
+    df.loc[~valid, new_metric] = None  # or nan
     return df
 
 # Interaction

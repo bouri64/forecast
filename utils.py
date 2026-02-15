@@ -6,6 +6,7 @@ import io
 import base64
 import yfinance as yf
 from companies import companies_list
+import os
 
 # url = "https://upbgpsqskumjhfrqefbt.supabase.co"
 # public_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwYmdwc3Fza3VtamhmcnFlZmJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwODE5MDcsImV4cCI6MjA2MjY1NzkwN30.sK_OPvxn2S0L4UeCUkjRV1jJm7bwfc55SRP7tRQ4FhQ"
@@ -50,10 +51,21 @@ def load_company(company_name, financials_path, min_date, max_date, verbose = 1)
     df = yf.Ticker(symbol).history(start=min_date, end=max_date)
     # df['Date'] = pd.to_datetime(df.index.tz_localize(None))
     return df, closest_company
+def load_sp(minDate, maxDate, cache_file="cache/sp500.csv"):
+    os.makedirs("cache", exist_ok=True)
 
-def load_sp(minDate, maxDate):
-    sp = yf.Ticker("^GSPC").history(start=minDate, end=maxDate)
+    if os.path.exists(cache_file):
+        sp = pd.read_csv(cache_file, parse_dates=['Date'])
+        sp = sp[(sp['Date'] >= minDate) & (sp['Date'] <= maxDate)]
+    else:
+        sp = yf.Ticker("^GSPC").history(start=minDate, end=maxDate).reset_index()
+        sp.to_csv(cache_file, index=False)
+
     return adjust_sp(sp, minDate, maxDate)
+
+# def load_sp(minDate, maxDate):
+#     sp = yf.Ticker("^GSPC").history(start=minDate, end=maxDate)
+#     return adjust_sp(sp, minDate, maxDate)
 
 def plot_company_vs_sp_df(name, df, sp_df, display = True, save = False, period='M', from_files = False, verbose = 1):
     # Group by period and aggregate
