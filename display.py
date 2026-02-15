@@ -1,14 +1,14 @@
 # Add etiquette or select from line + better colors
 # Save and load filters
 # Make refacto
+from display_utils import *
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from sqlalchemy import create_engine
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
-from display_utils import *
 import numpy as np
+
+
+
 st.set_page_config(layout="wide")
 st.title("Local Metrics Dashboard")
 
@@ -18,13 +18,6 @@ def load_data():
     if "current_df" not in st.session_state:
         st.session_state.current_df = pd.read_csv("../sec_parser/data/sp500_enriched_2.csv", parse_dates=["Date"], index_col=None)
 
-    # CSV example
-    # df = pd.read_csv("sp500.csv", parse_dates=["Date"], index_col=None)
-    # df = pd.read_csv("../sec_parser/data/sp500_enriched_2.csv", parse_dates=["Date"], index_col=None)
-
-    # # SQL example
-    # engine = create_engine("sqlite:///data.db")
-    # df = pd.read_sql("metrics", engine, parse_dates=["Date"])
     return st.session_state.current_df
 
 df = load_data()
@@ -58,69 +51,7 @@ for i in range(st.session_state.operation_count):
             key=f"op_type_{i}"
         )
 
-        # ---------------- Delay ----------------
-        if operation_type == "Delay":
-
-            metric = st.selectbox(
-                "Metric",
-                metric_cols,
-                key=f"delay_metric_{i}"
-            )
-
-            delay_years = st.number_input(
-                "Delay (years)",
-                min_value=1,
-                step=1,
-                key=f"delay_years_{i}"
-            )
-
-        # ---------------- Aggregate ----------------
-        elif operation_type == "Aggregate":
-
-            metric = st.selectbox(
-                "Metric",
-                metric_cols,
-                key=f"agg_metric_{i}"
-            )
-
-            mode = st.selectbox(
-                "Mode",
-                list(mode_dict.keys()),
-                key=f"agg_mode_{i}"
-            )
-
-            window = st.number_input(
-                "Window",
-                min_value=1,
-                step=1,
-                key=f"agg_window_{i}"
-            )
-
-        # ---------------- Interaction ----------------
-        elif operation_type == "Interaction":
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                metric1 = st.selectbox(
-                    "Metric 1",
-                    metric_cols,
-                    key=f"int_metric1_{i}"
-                )
-
-            with col2:
-                operator = st.selectbox(
-                    "Operator",
-                    list(ops.keys()),
-                    key=f"int_operator_{i}"
-                )
-
-            with col3:
-                metric2 = st.selectbox(
-                    "Metric 2",
-                    metric_cols,
-                    key=f"int_metric2_{i}"
-                )
+        config = op_config(operation_type, i, metric_cols)
 
 st.divider()
 
@@ -129,29 +60,7 @@ if st.button("Apply Operations"):
 
     for i in range(st.session_state.operation_count):
         op_type = st.session_state.get(f"op_type_{i}")
-
-        # --------- Delay ---------
-        if op_type == "Delay":
-            metric = st.session_state.get(f"delay_metric_{i}")
-            delay_years = st.session_state.get(f"delay_years_{i}")
-
-            # Simple example: shift by delay_years within each Symbol
-            df = delay(df, delay_years, metric)
-
-        # --------- Aggregate ---------
-        elif op_type == "Aggregate":
-            metric = st.session_state.get(f"agg_metric_{i}")
-            mode = st.session_state.get(f"agg_mode_{i}")
-            window = st.session_state.get(f"agg_window_{i}")
-
-            df = aggregate(df, mode, window, metric)
-        # --------- Interaction ---------
-        elif op_type == "Interaction":
-            m1 = st.session_state.get(f"int_metric1_{i}")
-            m2 = st.session_state.get(f"int_metric2_{i}")
-            operator_ = st.session_state.get(f"int_operator_{i}")
-
-            df = interaction(df, operator, m1, m2)
+        df = apply_op(df, st.session_state, op_type, i)
 
     st.success("Operations applied!")
     st.session_state.current_df = df
@@ -204,35 +113,7 @@ with st.sidebar:
         )
     )
 
-    # # metric
-
-    # metric_col = st.selectbox(
-    #     "Metric to filter on",
-    #     options=metric_cols
-    # )
-
-    # metric_min, metric_max = float(df[metric_col].min()), float(df[metric_col].max())
-    # col1, col2 = st.columns(2)
-
-    # with col1:
-    #     min_val = st.number_input(
-    #         f"{metric_col} min",
-    #         min_value=metric_min,
-    #         max_value=metric_max,
-    #         value=metric_min
-    #     )
-
-    # with col2:
-    #     max_val = st.number_input(
-    #         f"{metric_col} max",
-    #         min_value=metric_min,
-    #         max_value=metric_max,
-    #         value=metric_max
-    #     )
-
-    # value_range = (min_val, max_val)
-
-    # # metric
+    # metric
     time_range_metric = st.slider(
         "Time range applied on metrics",
         min_value=st.session_state.current_df[time_col].min().to_pydatetime(),
@@ -260,13 +141,6 @@ with st.sidebar:
             metric_max = 1.797e+308
 
         with st.expander(f"{metric_col} filter", expanded=True):
-            # operator = st.selectbox(
-            # "Operator",
-            # options=[">=", "<=", "between"],
-            # index=2,
-            # key=f"{metric_col}_op"
-            #     )
-
             col1, col2 = st.columns(2)
 
             with col1:
@@ -288,39 +162,12 @@ with st.sidebar:
                 )
             metric_filters[metric_col] = (min_val, max_val)
 
-        # metric_filters[metric_col] = {
-        #     "op": operator,
-        #     "min": min_val,
-        #     "max": max_val
-        # }
 # -----------------------
 # Validate selection
 # -----------------------
 if not metrics:
     st.info("👈 Select at least one metric in the sidebar.")
     st.stop()
-
-# -----------------------
-# Filter data
-# -----------------------
-# df_filtered = df[
-#     (df[time_col] >= time_range[0]) &
-#     (df[time_col] <= time_range[1]) &
-#     (df[metric_col].between(value_range[0], value_range[1])) &
-#     (df[hue_col].isin(selected_hues))
-# ]
-
-# mask = (
-#     (df[time_col] >= time_range[0]) &
-#     (df[time_col] <= time_range[1]) &
-#     (df[hue_col].isin(selected_hues))
-# )
-
-# for metric_col, (min_val, max_val) in metric_filters.items():
-#     mask &= df[metric_col].between(min_val, max_val)
-
-# df_filtered = df[mask]
-
 
 mask = (
     (st.session_state.current_df[time_col] >= time_range[0]) &
@@ -340,23 +187,6 @@ for metric_col, (min_val, max_val) in metric_filters.items():
     df_filtered_metrics = df_filtered_metrics[df_filtered_metrics["Symbol"].isin(valid_symbols)] # Not only year with cur_mask is active
     df_filtered = df_filtered[df_filtered["Symbol"].isin(valid_symbols)]
 
-
-
-# mask = (
-#     (df[time_col] >= time_range[0]) &
-#     (df[time_col] <= time_range[1]) &
-#     (df[hue_col].isin(selected_hues))
-# )
-
-# for metric_col, cfg in metric_filters.items():
-#     if cfg["op"] == "between":
-#         mask &= df[metric_col].between(cfg["min"], cfg["max"])
-#     elif cfg["op"] == ">=":
-#         mask &= df[metric_col] >= cfg["min"]
-#     elif cfg["op"] == "<=":
-#         mask &= df[metric_col] <= cfg["min"]
-
-# df_filtered = df[mask]
 
 if df_filtered.empty:
     st.warning("No data for selected filters.")
@@ -394,21 +224,10 @@ if combine_metrics:
             y="value",
             color="metric",
             line_dash=hue_col,
-            markers=True,   # 👈 this adds point markers
+            markers=True,
+            custom_data=["Symbol"],
             title=f"Metrics over time (linearly rescaled) | Number of results: {valid}"
         )
-
-        # fig.add_annotation(
-        #     text=f"Number of results: {valid}",
-        #     xref="paper",
-        #     yref="paper",
-        #     x=0.99,
-        #     y=1.08,
-        #     showarrow=False,
-        #     align="right",
-        #     font=dict(size=14)
-        # )
-
 
         fig.update_layout(
             hovermode="x unified"
@@ -431,7 +250,8 @@ if combine_metrics:
             y="value",
             color="metric",
             line_dash=hue_col,
-            markers=True,   # 👈 this adds point markers
+            markers=True,
+            custom_data=["Symbol"],
             title=f"Metrics over time | Number of results: {valid}"
         )
 
@@ -449,7 +269,8 @@ else:
             x=time_col,
             y=metric,
             color=hue_col,
-            markers=True,   # 👈 this adds point markers
+            markers=True,
+            custom_data=["Symbol"],
             title=f"{metric} | Number of results: {valid}"
         )
 
