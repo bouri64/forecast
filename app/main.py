@@ -1,7 +1,7 @@
 # Add etiquette or select from line + better colors
 # Save and load filters
 # Make refacto
-from app.display_utils import *
+from display_utils import *
 import streamlit as st
 import pandas as pd
 import plotly.express as px
