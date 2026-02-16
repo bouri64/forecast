@@ -1,2 +1,2 @@
 # api/index.py
-from display import app  # or from app.main import app
+from app.main import app  # or from app.main import app

@@ -16,11 +16,11 @@ st.title("Local Metrics Dashboard")
 @st.cache_data
 def load_data():
     if "current_df" not in st.session_state:
-        st.session_state.current_df = pd.read_csv("./app/sp500.csv", parse_dates=["Date"], index_col=None)
+        st.session_state.current_df = pd.read_csv("./sp500.csv", parse_dates=["Date"], index_col=None)
 
     return st.session_state.current_df
 
-df = load_data()
+st.session_state.current_df = load_data()
 # ---- Column roles ----
 time_col = "Date"
 hue_col = "Symbol"  # optional
@@ -60,17 +60,25 @@ if st.button("Apply Operations"):
 
     for i in range(st.session_state.operation_count):
         op_type = st.session_state.get(f"op_type_{i}")
-        df = apply_op(df, st.session_state, op_type, i)
+        st.session_state.current_df = apply_op(st.session_state.current_df, st.session_state, op_type, i)
 
     st.success("Operations applied!")
-    st.session_state.current_df = df
 # ---- Display resulting DataFrame ----
 if st.session_state.show_df:
     st.dataframe(st.session_state.current_df)
 
 # ---- Save button ----
-if st.button("Save DF"):
-    save(st.session_state.current_df)
+# save(st.session_state.current_df) #Internal save
+csv = st.session_state.current_df.to_csv(index=False).encode("utf-8")
+name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".csv"
+
+st.download_button(
+    label="Download CSV",
+    data=csv,
+    file_name=name,   # e.g. "data.csv"
+    mime="text/csv"
+)
+
 # -----------------------
 # SIDEBAR CONTROLS
 # -----------------------
